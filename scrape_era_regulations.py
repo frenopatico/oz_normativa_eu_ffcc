@@ -11,6 +11,7 @@ Genera un fichero JSON con cada documento y sus metadatos.
 
 import json
 import logging
+import os
 import re
 import time
 from datetime import datetime, timezone
@@ -1105,7 +1106,8 @@ def main() -> None:
         "recursos_adicionales_tsi": all_resources,
     }
 
-    output_file = "/workspace/oz_normativa_eu_ffcc/era_regulacion_estados_miembros.json"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_file = os.path.join(script_dir, "era_regulacion_estados_miembros.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
