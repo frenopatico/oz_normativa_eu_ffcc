@@ -1,0 +1,1120 @@
+#!/usr/bin/env python3
+"""
+Web scraper para la documentación regulatoria de ERA (European Union Agency for Railways).
+
+Extrae documentos regulatorios, TSIs, métodos comunes de seguridad (CSM),
+directivas, reglamentos de implementación y opiniones/recomendaciones de ERA
+que los estados miembros de la UE deben tener en cuenta.
+
+Genera un fichero JSON con cada documento y sus metadatos.
+"""
+
+import json
+import logging
+import re
+import time
+from datetime import datetime, timezone
+from urllib.parse import urljoin, urlparse
+
+import requests
+from bs4 import BeautifulSoup
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
+
+BASE_URL = "https://www.era.europa.eu"
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (compatible; ERA-RegScraper/1.0; "
+        "+https://github.com/oz_normativa_eu_ffcc)"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9,es;q=0.8",
+}
+REQUEST_DELAY = 1.5  # seconds between requests
+
+
+def fetch_page(url: str, session: requests.Session) -> BeautifulSoup | None:
+    """Fetch a page and return its BeautifulSoup object."""
+    try:
+        logger.info(f"Fetching: {url}")
+        resp = session.get(url, headers=HEADERS, timeout=30)
+        resp.raise_for_status()
+        time.sleep(REQUEST_DELAY)
+        return BeautifulSoup(resp.text, "lxml")
+    except requests.RequestException as e:
+        logger.warning(f"Error fetching {url}: {e}")
+        return None
+
+
+def clean_text(text: str) -> str:
+    """Normalize whitespace in text."""
+    if not text:
+        return ""
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def extract_celex_or_regulation_id(text: str) -> str | None:
+    """Try to extract EU regulation/directive reference from text."""
+    patterns = [
+        r"\(EU\)\s*(?:No\s*)?(\d{4}/\d+)",
+        r"\(EU\)\s*(?:No\s*)?(\d+/\d{4})",
+        r"\(EU\)\s*(\d{4}/\d+)",
+        r"\(EEC\)\s*(?:No\s*)?(\d+/\d+)",
+        r"Directive\s*\(EU\)\s*(\d{4}/\d+)",
+        r"Regulation\s*\(EU\)\s*(\d{4}/\d+)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1)
+    return None
+
+
+# ---------------------------------------------------------------------------
+# 1. Cuarto Paquete Ferroviario — Legislación fundamental
+# ---------------------------------------------------------------------------
+def get_fourth_railway_package_legislation() -> list[dict]:
+    """Return the core 4th Railway Package legislative texts."""
+    docs = [
+        # --- PILAR TÉCNICO ---
+        {
+            "id": "REG-2016-796",
+            "titulo": "Reglamento (UE) 2016/796 sobre la Agencia Ferroviaria de la Unión Europea",
+            "titulo_en": "Regulation (EU) 2016/796 on the European Union Agency for Railways",
+            "tipo": "Reglamento",
+            "referencia_celex": "32016R0796",
+            "numero_oficial": "(EU) 2016/796",
+            "fecha_publicacion": "2016-05-11",
+            "pilar": "Técnico",
+            "estado": "En vigor",
+            "deroga": "Regulation (EC) No 881/2004",
+            "descripcion": (
+                "Establece la Agencia Ferroviaria de la UE (ERA) con competencias reforzadas: "
+                "emisión de autorizaciones de vehículos y certificados de seguridad, "
+                "aprobación de soluciones técnicas ERTMS en vía, supervisión de las ANS."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0796",
+            "url_era": "https://www.era.europa.eu/can-we-help-you/faq/290_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Institucional / Gobernanza",
+            "categoria": "Cuarto Paquete Ferroviario - Pilar Técnico",
+        },
+        {
+            "id": "DIR-2016-797",
+            "titulo": "Directiva (UE) 2016/797 sobre la interoperabilidad del sistema ferroviario en la UE",
+            "titulo_en": "Directive (EU) 2016/797 on the interoperability of the rail system within the EU",
+            "tipo": "Directiva",
+            "referencia_celex": "32016L0797",
+            "numero_oficial": "(EU) 2016/797",
+            "fecha_publicacion": "2016-05-11",
+            "pilar": "Técnico",
+            "estado": "En vigor",
+            "deroga": "Directive 2008/57/EC",
+            "descripcion": (
+                "Directiva refundida de interoperabilidad. Define los subsistemas del sistema "
+                "ferroviario de la UE, requisitos esenciales, TSIs, procedimientos de verificación CE, "
+                "y autorización de puesta en el mercado de vehículos."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016L0797",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability_en",
+            "ambito": "Todos los estados miembros (transposición requerida)",
+            "subsistema": "Interoperabilidad",
+            "categoria": "Cuarto Paquete Ferroviario - Pilar Técnico",
+        },
+        {
+            "id": "DIR-2016-798",
+            "titulo": "Directiva (UE) 2016/798 sobre la seguridad ferroviaria",
+            "titulo_en": "Directive (EU) 2016/798 on railway safety",
+            "tipo": "Directiva",
+            "referencia_celex": "32016L0798",
+            "numero_oficial": "(EU) 2016/798",
+            "fecha_publicacion": "2016-05-11",
+            "pilar": "Técnico",
+            "estado": "En vigor",
+            "deroga": "Directive 2004/49/EC",
+            "descripcion": (
+                "Directiva refundida de seguridad ferroviaria. Centraliza la emisión de "
+                "certificados de seguridad únicos (SSC) en ERA, refuerza la supervisión "
+                "de las ANS, establece requisitos de SMS y ECM."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016L0798",
+            "url_era": "https://www.era.europa.eu/domains/safety_en",
+            "ambito": "Todos los estados miembros (transposición requerida)",
+            "subsistema": "Seguridad",
+            "categoria": "Cuarto Paquete Ferroviario - Pilar Técnico",
+        },
+        # --- PILAR DE MERCADO ---
+        {
+            "id": "REG-2016-2338",
+            "titulo": "Reglamento (UE) 2016/2338 sobre contratos de servicio público de transporte de viajeros por ferrocarril",
+            "titulo_en": (
+                "Regulation (EU) 2016/2338 amending Regulation (EU) 1370/2007 "
+                "on public service contracts for domestic passenger transport by rail"
+            ),
+            "tipo": "Reglamento",
+            "referencia_celex": "32016R2338",
+            "numero_oficial": "(EU) 2016/2338",
+            "fecha_publicacion": "2016-12-23",
+            "pilar": "Mercado",
+            "estado": "En vigor",
+            "deroga": None,
+            "descripcion": (
+                "Introduce la licitación obligatoria de contratos de servicio público "
+                "de transporte ferroviario de viajeros y regula las condiciones de adjudicación directa."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R2338",
+            "url_era": None,
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Mercado / Servicio Público",
+            "categoria": "Cuarto Paquete Ferroviario - Pilar de Mercado",
+        },
+        {
+            "id": "DIR-2016-2370",
+            "titulo": "Directiva (UE) 2016/2370 sobre apertura del mercado de transporte nacional de viajeros",
+            "titulo_en": (
+                "Directive 2016/2370/EU amending Directive 2012/34/EU on the opening "
+                "of the market for domestic passenger transport services by rail"
+            ),
+            "tipo": "Directiva",
+            "referencia_celex": "32016L2370",
+            "numero_oficial": "(EU) 2016/2370",
+            "fecha_publicacion": "2016-12-23",
+            "pilar": "Mercado",
+            "estado": "En vigor",
+            "deroga": None,
+            "descripcion": (
+                "Modifica la Directiva 2012/34/UE. Establece el derecho general de las empresas "
+                "ferroviarias a operar servicios de viajeros en cualquier estado miembro y refuerza "
+                "la imparcialidad en la gestión de la infraestructura."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016L2370",
+            "url_era": None,
+            "ambito": "Todos los estados miembros (transposición requerida)",
+            "subsistema": "Mercado / Gobernanza",
+            "categoria": "Cuarto Paquete Ferroviario - Pilar de Mercado",
+        },
+        {
+            "id": "REG-2016-2337",
+            "titulo": "Reglamento (UE) 2016/2337 que deroga el Reglamento (CEE) 1192/69 sobre normalización de cuentas",
+            "titulo_en": (
+                "Regulation (EU) 2016/2337 repealing Regulation (EEC) 1192/69 "
+                "on the normalisation of accounts of railway undertakings"
+            ),
+            "tipo": "Reglamento",
+            "referencia_celex": "32016R2337",
+            "numero_oficial": "(EU) 2016/2337",
+            "fecha_publicacion": "2016-12-23",
+            "pilar": "Mercado",
+            "estado": "En vigor (expirado)",
+            "deroga": "Regulation (EEC) No 1192/69",
+            "descripcion": "Derogación de la normativa sobre normalización de cuentas de empresas ferroviarias.",
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R2337",
+            "url_era": None,
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Contabilidad / Gobernanza",
+            "categoria": "Cuarto Paquete Ferroviario - Pilar de Mercado",
+        },
+    ]
+    return docs
+
+
+# ---------------------------------------------------------------------------
+# 2. TSIs — Especificaciones Técnicas de Interoperabilidad
+# ---------------------------------------------------------------------------
+def get_tsi_documents() -> list[dict]:
+    """Return the current TSIs and their implementing regulations."""
+    tsis = [
+        {
+            "id": "TSI-ENE-2023",
+            "titulo": "ETI de Energía (TSI ENE)",
+            "titulo_en": "Energy TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1694",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1694",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Especificación técnica del subsistema de energía. Cubre todas las "
+                "instalaciones fijas necesarias para la interoperabilidad destinadas "
+                "a suministrar energía de tracción al tren."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1694",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/energy-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Energía",
+            "categoria": "TSI - Paquete 2023",
+        },
+        {
+            "id": "TSI-INF-2023",
+            "titulo": "ETI de Infraestructura (TSI INF)",
+            "titulo_en": "Infrastructure TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1694",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1694",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Cubre el subsistema estructural de infraestructura (trazado de línea, "
+                "parámetros de vía, andenes, resistencia a carga) y el subsistema funcional "
+                "de mantenimiento de infraestructura."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1694",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/infrastructure-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Infraestructura",
+            "categoria": "TSI - Paquete 2023",
+        },
+        {
+            "id": "TSI-LOCPAS-2023",
+            "titulo": "ETI de Material Rodante - Locomotoras y Viajeros (TSI LOC&PAS)",
+            "titulo_en": "Rolling Stock - Locomotives and Passengers TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1694",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1694",
+            "reglamento_base": "Commission Regulation (EU) No 1302/2014",
+            "enmiendas": [
+                "(EU) 2016/919", "(EU) 2018/868", "(EU) 2019/776",
+                "(EU) 2020/387", "(EU) 2023/1694"
+            ],
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Subsistema de material rodante: trenes autopropulsados térmicos o eléctricos, "
+                "unidades de tracción, coches de viajeros, equipos móviles de construcción "
+                "y mantenimiento de infraestructura ferroviaria."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1694",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/rolling-stock-locomotives-and-passengers-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Material Rodante (Locomotoras y Viajeros)",
+            "categoria": "TSI - Paquete 2023",
+        },
+        {
+            "id": "TSI-NOI-2023",
+            "titulo": "ETI de Ruido (TSI NOI)",
+            "titulo_en": "Noise TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1694",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1694",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Establece el nivel óptimo de armonización de especificaciones del subsistema "
+                "de material rodante para limitar las emisiones de ruido del sistema ferroviario. "
+                "Solo vagones conformes a esta TSI pueden circular por rutas silenciosas desde 08/12/2024."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1694",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/noise-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Material Rodante (Ruido)",
+            "categoria": "TSI - Paquete 2023",
+        },
+        {
+            "id": "TSI-WAG-2023",
+            "titulo": "ETI de Material Rodante - Vagones de Mercancías (TSI WAG)",
+            "titulo_en": "Rolling Stock - Freight Wagons TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1694",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1694",
+            "reglamento_base": "Commission Regulation (EU) No 321/2013",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Subsistema de material rodante aplicable a vagones de mercancías "
+                "incluidos los vehículos diseñados para transportar camiones."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1694",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/rolling-stock-freight-wagons-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Material Rodante (Vagones de Mercancías)",
+            "categoria": "TSI - Paquete 2023",
+        },
+        {
+            "id": "TSI-SRT-2023",
+            "titulo": "ETI de Seguridad en Túneles Ferroviarios (TSI SRT)",
+            "titulo_en": "Safety in Railway Tunnels TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1694",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1694",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Aplica a los subsistemas CCS, infraestructura, energía, explotación "
+                "y gestión del tráfico, y material rodante. Se aplica a túneles nuevos, "
+                "renovados y mejorados en la red ferroviaria de la UE."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1694",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/safety-railway-tunnels-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Seguridad en Túneles",
+            "categoria": "TSI - Paquete 2023",
+        },
+        {
+            "id": "TSI-CCS-2023",
+            "titulo": "ETI de Control-Mando y Señalización (TSI CCS)",
+            "titulo_en": "Control Command and Signalling TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1695",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1695",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Subsistemas de control-mando y señalización embarcados y en tierra. "
+                "Incluye especificaciones ERTMS/ETCS, GSM-R, ATO, FRMCS. "
+                "Define el régimen de transición y los planes nacionales de implementación (NIP)."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1695",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Control-Mando y Señalización (CCS)",
+            "categoria": "TSI - Paquete 2023",
+            "notas": (
+                "El Apéndice A contiene las especificaciones mandatorias ERTMS. "
+                "Los estados miembros deben presentar planes nacionales de implementación (NIP) "
+                "para la migración a FRMCS y ETCS."
+            ),
+        },
+        {
+            "id": "TSI-PRM-2023",
+            "titulo": "ETI de Accesibilidad para Personas con Discapacidad y Movilidad Reducida (TSI PRM)",
+            "titulo_en": "Persons with Disabilities and with Reduced Mobility TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1694",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1694",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Aplica a los subsistemas de infraestructura, explotación y gestión del tráfico, "
+                "aplicaciones telemáticas y material rodante. Cubre la accesibilidad para personas "
+                "con discapacidad y movilidad reducida."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1694",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/persons-disabilities-and-reduced-mobility-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Accesibilidad (PRM)",
+            "categoria": "TSI - Paquete 2023",
+        },
+        {
+            "id": "TSI-OPE-2023",
+            "titulo": "ETI de Explotación y Gestión del Tráfico (TSI OPE)",
+            "titulo_en": "Operation and Traffic Management TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1693",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1693",
+            "reglamento_base": "Commission Implementing Regulation (EU) 2019/773",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "En vigor",
+            "descripcion": (
+                "Subsistema funcional de explotación y gestión del tráfico para "
+                "administradores de infraestructura y empresas ferroviarias. "
+                "Incluye apéndices A (principios ERTMS) y C (comunicaciones)."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1693",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/operation-and-traffic-management-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Explotación y Gestión del Tráfico",
+            "categoria": "TSI - Paquete 2023",
+            "plazos_implementacion": {
+                "entrada_en_vigor": "2023-09-28",
+                "adaptacion_SMS": "2024-06-28",
+                "apendices_A_C_aplicables": "2024-06-16",
+                "aplazamiento_maximo_apendices": "2025-12-16",
+                "notificacion_normas_redundantes": "2024-03-28",
+            },
+        },
+        {
+            "id": "TSI-TAP-2023",
+            "titulo": "ETI de Aplicaciones Telemáticas para Viajeros (TSI TAP)",
+            "titulo_en": "Telematics Applications for Passenger service TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32023R1694",
+            "numero_oficial": "Commission Implementing Regulation (EU) 2023/1694",
+            "fecha_publicacion": "2023-09-08",
+            "estado": "Reemplazada por TSI Telematics (2026)",
+            "descripcion": (
+                "Aplicaciones telemáticas para servicios de viajeros. "
+                "Reemplazada a partir del 2 de marzo de 2026 por la nueva TSI de Telemática."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1694",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/telematics-applications-passenger-service-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Aplicaciones Telemáticas (Viajeros)",
+            "categoria": "TSI - Paquete 2023",
+        },
+        {
+            "id": "TSI-TAF-2014",
+            "titulo": "ETI de Aplicaciones Telemáticas para Mercancías (TSI TAF)",
+            "titulo_en": "Telematics Applications for Freight service TSI",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "referencia_celex": "32014R1305",
+            "numero_oficial": "Commission Regulation (EU) No 1305/2014",
+            "fecha_publicacion": "2014-12-11",
+            "estado": "Reemplazada por TSI Telematics (2026)",
+            "descripcion": (
+                "Aplicaciones telemáticas para servicios de mercancías: monitorización "
+                "en tiempo real de mercancías y trenes, sistemas de clasificación, "
+                "facturación, gestión de conexiones intermodales."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32014R1305",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/telematics-applications-freight-service-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Aplicaciones Telemáticas (Mercancías)",
+            "categoria": "TSI",
+        },
+        {
+            "id": "TSI-TELEMATICS-2026",
+            "titulo": "ETI de Telemática (TSI Telematics) — nueva",
+            "titulo_en": "Telematics TSI (new unified)",
+            "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
+            "numero_oficial": "Implementing Regulation (EU) 2026/xxx (pendiente de número definitivo)",
+            "fecha_publicacion": "2026-02-06",
+            "estado": "En vigor desde 2026-03-02",
+            "descripcion": (
+                "Nueva TSI unificada de Telemática que reemplaza las TSI TAP y TAF. "
+                "Requisitos de interoperabilidad para el intercambio de datos en el transporte ferroviario."
+            ),
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Aplicaciones Telemáticas (unificada)",
+            "categoria": "TSI - 2026",
+        },
+    ]
+    return tsis
+
+
+# ---------------------------------------------------------------------------
+# 3. Reglamentos de implementación y delegados
+# ---------------------------------------------------------------------------
+def get_implementing_regulations() -> list[dict]:
+    """Return key implementing and delegated regulations."""
+    regs = [
+        {
+            "id": "IMPL-2018-545",
+            "titulo": "Reglamento de Ejecución (UE) 2018/545 — Procedimiento de autorización de vehículos",
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2018/545 establishing practical "
+                "arrangements for the railway vehicle authorisation process"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32018R0545",
+            "numero_oficial": "(EU) 2018/545",
+            "fecha_publicacion": "2018-04-04",
+            "estado": "En vigor (modificado por (EU) 2020/781)",
+            "descripcion": (
+                "Establece las disposiciones prácticas para el proceso de autorización "
+                "de vehículos y tipos de vehículos ferroviarios. Define el procedimiento "
+                "a través del One-Stop Shop (OSS)."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018R0545",
+            "url_era": "https://www.era.europa.eu/domains/applicants/applications-vehicle-type-authorisations_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Autorización de Vehículos",
+            "categoria": "Reglamento de Implementación - 4º Paquete",
+        },
+        {
+            "id": "IMPL-2019-779",
+            "titulo": "Reglamento de Ejecución (UE) 2019/779 — Certificación de ECM",
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2019/779 on a system "
+                "of certification of entities in charge of maintenance (ECM)"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32019R0779",
+            "numero_oficial": "(EU) 2019/779",
+            "fecha_publicacion": "2019-05-16",
+            "estado": "En vigor",
+            "deroga": "Commission Regulation (EU) No 445/2011",
+            "descripcion": (
+                "Sistema de certificación de entidades encargadas del mantenimiento (ECM) "
+                "de vehículos. Obligatorio para ECM de vagones de mercancías; "
+                "también aplicable a locomotoras, trenes de viajeros, etc."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32019R0779",
+            "url_era": "https://www.era.europa.eu/domains/safety-management/ecm_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Mantenimiento (ECM)",
+            "categoria": "Reglamento de Implementación - Seguridad",
+        },
+        {
+            "id": "IMPL-2019-773",
+            "titulo": "Reglamento de Ejecución (UE) 2019/773 — TSI OPE (versión base)",
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2019/773 on the operation "
+                "and traffic management TSI"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32019R0773",
+            "numero_oficial": "(EU) 2019/773",
+            "fecha_publicacion": "2019-05-16",
+            "estado": "En vigor (modificado por (EU) 2023/1693)",
+            "descripcion": (
+                "Reglamento base de la TSI de Explotación y Gestión del Tráfico. "
+                "Establece las normas operativas para administradores de infraestructura "
+                "y empresas ferroviarias."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32019R0773",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/operation-and-traffic-management-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Explotación y Gestión del Tráfico",
+            "categoria": "Reglamento de Implementación - TSI OPE",
+        },
+        {
+            "id": "DEL-2018-762",
+            "titulo": "Reglamento Delegado (UE) 2018/762 — Requisitos del SMS",
+            "titulo_en": (
+                "Commission Delegated Regulation (EU) 2018/762 establishing common safety "
+                "methods on SMS requirements pursuant to Directive (EU) 2016/798"
+            ),
+            "tipo": "Reglamento Delegado",
+            "referencia_celex": "32018R0762",
+            "numero_oficial": "(EU) 2018/762",
+            "fecha_publicacion": "2018-04-16",
+            "estado": "En vigor",
+            "descripcion": (
+                "Establece los métodos comunes de seguridad sobre requisitos del sistema "
+                "de gestión de la seguridad (SMS) para empresas ferroviarias y "
+                "administradores de infraestructura."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018R0762",
+            "url_era": "https://www.era.europa.eu/domains/common-safety-methods/safety-management-system-requirements-csm_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Seguridad — SMS",
+            "categoria": "Reglamento Delegado - CSM",
+        },
+        {
+            "id": "IMPL-2018-764",
+            "titulo": "Reglamento de Ejecución (UE) 2018/764 — Tasas y cargos de ERA",
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2018/764 on fees and charges "
+                "payable to the European Union Agency for Railways"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32018R0764",
+            "numero_oficial": "(EU) 2018/764",
+            "fecha_publicacion": "2018-05-02",
+            "estado": "En vigor",
+            "descripcion": (
+                "Establece las tasas y cargos a pagar a ERA por los servicios prestados "
+                "en el marco de las Directivas de Interoperabilidad y Seguridad."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018R0764",
+            "url_era": "https://www.era.europa.eu",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Tasas y cargos",
+            "categoria": "Reglamento de Implementación - 4º Paquete",
+        },
+        {
+            "id": "IMPL-2019-250",
+            "titulo": "Reglamento de Ejecución (UE) 2019/250 — Plantillas de declaraciones y certificados CE",
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2019/250 on templates for "
+                "EC declarations and certificates for railway interoperability"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32019R0250",
+            "numero_oficial": "(EU) 2019/250",
+            "fecha_publicacion": "2019-02-12",
+            "estado": "En vigor",
+            "descripcion": (
+                "Plantillas para declaraciones CE de componentes de interoperabilidad y subsistemas, "
+                "declaración de conformidad con tipo de vehículo autorizado, y procedimientos "
+                "de verificación CE."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32019R0250",
+            "url_era": "https://www.era.europa.eu",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Interoperabilidad - Certificación",
+            "categoria": "Reglamento de Implementación - 4º Paquete",
+        },
+        {
+            "id": "IMPL-2018-867",
+            "titulo": "Reglamento de Ejecución (UE) 2018/867 — Procedimiento de la Sala de Recursos de ERA",
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2018/867 laying down the rules of "
+                "procedure of the Board(s) of Appeal of the ERA"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32018R0867",
+            "numero_oficial": "(EU) 2018/867",
+            "fecha_publicacion": "2018-06-13",
+            "estado": "En vigor",
+            "descripcion": "Reglas de procedimiento de la Sala de Recursos de ERA.",
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018R0867",
+            "url_era": "https://www.era.europa.eu",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Gobernanza ERA",
+            "categoria": "Reglamento de Implementación - 4º Paquete",
+        },
+    ]
+    return regs
+
+
+# ---------------------------------------------------------------------------
+# 4. Métodos Comunes de Seguridad (CSM)
+# ---------------------------------------------------------------------------
+def get_csm_documents() -> list[dict]:
+    """Return Common Safety Methods regulations."""
+    csms = [
+        {
+            "id": "CSM-RA-402-2013",
+            "titulo": "CSM de Evaluación y Valoración del Riesgo (CSM REA)",
+            "titulo_en": "Common Safety Method for Risk Evaluation and Assessment",
+            "tipo": "Reglamento de Ejecución (CSM)",
+            "referencia_celex": "32013R0402",
+            "numero_oficial": "Commission Implementing Regulation (EU) No 402/2013",
+            "fecha_publicacion": "2013-04-30",
+            "estado": "En vigor (modificado por (EU) 2015/1136)",
+            "descripcion": (
+                "Método común de seguridad para evaluación y valoración de riesgos. "
+                "Aplicable a cualquier cambio técnico, operativo u organizativo "
+                "en el sistema ferroviario de un estado miembro."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32013R0402",
+            "url_era": "https://www.era.europa.eu/domains/common-safety-methods/risk-evaluation-assessment-csm_en",
+            "ambito": "Todos los estados miembros — directamente aplicable",
+            "subsistema": "Seguridad — Evaluación de Riesgos",
+            "categoria": "Método Común de Seguridad (CSM)",
+        },
+        {
+            "id": "CSM-RA-2015-1136",
+            "titulo": "Reglamento (UE) 2015/1136 — Modificación del CSM REA (objetivos de diseño armonizados)",
+            "titulo_en": "Commission Implementing Regulation (EU) 2015/1136 amending CSM REA",
+            "tipo": "Reglamento de Ejecución (CSM)",
+            "referencia_celex": "32015R1136",
+            "numero_oficial": "(EU) 2015/1136",
+            "fecha_publicacion": "2015-07-13",
+            "estado": "En vigor",
+            "descripcion": (
+                "Modifica el CSM REA para introducir 'objetivos de diseño armonizados' "
+                "que sustituyen los anteriores 'criterios de aceptación de riesgos'."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32015R1136",
+            "url_era": "https://www.era.europa.eu/domains/common-safety-methods/risk-evaluation-assessment-csm_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Seguridad — Evaluación de Riesgos",
+            "categoria": "Método Común de Seguridad (CSM)",
+        },
+        {
+            "id": "CSM-SMS-2018-762",
+            "titulo": "CSM de Requisitos del Sistema de Gestión de la Seguridad (CSM SMS)",
+            "titulo_en": "CSM on Safety Management System Requirements",
+            "tipo": "Reglamento Delegado (CSM)",
+            "referencia_celex": "32018R0762",
+            "numero_oficial": "Commission Delegated Regulation (EU) 2018/762",
+            "fecha_publicacion": "2018-04-16",
+            "estado": "En vigor",
+            "descripcion": (
+                "Requisitos del SMS para empresas ferroviarias e "
+                "infraestructuras. Establece los criterios de evaluación "
+                "para certificados de seguridad y autorizaciones de seguridad."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018R0762",
+            "url_era": "https://www.era.europa.eu/domains/common-safety-methods/safety-management-system-requirements-csm_en",
+            "ambito": "Todos los estados miembros — directamente aplicable",
+            "subsistema": "Seguridad — SMS",
+            "categoria": "Método Común de Seguridad (CSM)",
+        },
+        {
+            "id": "CSM-MON-1078-2012",
+            "titulo": "CSM de Supervisión (CSM MON)",
+            "titulo_en": "Common Safety Method for Monitoring",
+            "tipo": "Reglamento (CSM)",
+            "referencia_celex": "32012R1078",
+            "numero_oficial": "Commission Regulation (EU) No 1078/2012",
+            "fecha_publicacion": "2012-11-16",
+            "estado": "En vigor",
+            "descripcion": (
+                "Método común para la supervisión continua del sistema ferroviario "
+                "por parte de empresas ferroviarias, administradores de infraestructura "
+                "y entidades encargadas del mantenimiento."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32012R1078",
+            "url_era": "https://www.era.europa.eu/domains/common-safety-methods/monitoring-csm_en",
+            "ambito": "Todos los estados miembros — directamente aplicable",
+            "subsistema": "Seguridad — Supervisión",
+            "categoria": "Método Común de Seguridad (CSM)",
+        },
+        {
+            "id": "CSM-CST-2009-460",
+            "titulo": "CSM de Objetivos Comunes de Seguridad (CSM CST)",
+            "titulo_en": "Common Safety Method on Common Safety Targets",
+            "tipo": "Decisión (CSM)",
+            "referencia_celex": "32009D0460",
+            "numero_oficial": "Commission Decision 2009/460/EC",
+            "fecha_publicacion": "2009-06-05",
+            "estado": "En vigor",
+            "descripcion": (
+                "Proporciona el control a corto plazo de los rendimientos de seguridad "
+                "y la convergencia a largo plazo, mediante valores nacionales de referencia "
+                "y los indicadores comunes de seguridad (CSIs)."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32009D0460",
+            "url_era": "https://www.era.europa.eu/domains/common-safety-methods/common-safety-targets-csm_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Seguridad — Objetivos / Indicadores",
+            "categoria": "Método Común de Seguridad (CSM)",
+        },
+        {
+            "id": "CSM-CONF-1158-2010",
+            "titulo": "CSM de Evaluación de Conformidad de Certificados de Seguridad",
+            "titulo_en": "CSM for Conformity Assessment of Safety Certificates",
+            "tipo": "Reglamento (CSM)",
+            "referencia_celex": "32010R1158",
+            "numero_oficial": "Commission Regulation (EU) No 1158/2010",
+            "fecha_publicacion": "2010-12-09",
+            "estado": "Derogado con efecto 2025-06-16 (sustituido por (EU) 2018/762)",
+            "descripcion": (
+                "Enfoque común para la evaluación de solicitudes de certificados de seguridad "
+                "por parte de las autoridades nacionales de seguridad."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32010R1158",
+            "url_era": "https://www.era.europa.eu/domains/common-safety-methods/conformity-assessment-csm_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Seguridad — Certificación",
+            "categoria": "Método Común de Seguridad (CSM)",
+        },
+        {
+            "id": "CSM-CONF-1169-2010",
+            "titulo": "CSM de Evaluación de Conformidad de Autorizaciones de Seguridad",
+            "titulo_en": "CSM for Conformity Assessment of Safety Authorisations",
+            "tipo": "Reglamento (CSM)",
+            "referencia_celex": "32010R1169",
+            "numero_oficial": "Commission Regulation (EU) No 1169/2010",
+            "fecha_publicacion": "2010-12-10",
+            "estado": "Derogado con efecto 2025-06-16 (sustituido por (EU) 2018/762)",
+            "descripcion": (
+                "Enfoque común para la evaluación de solicitudes de autorizaciones de seguridad "
+                "de administradores de infraestructura."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32010R1169",
+            "url_era": "https://www.era.europa.eu/domains/common-safety-methods/conformity-assessment-csm_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Seguridad — Autorización",
+            "categoria": "Método Común de Seguridad (CSM)",
+        },
+    ]
+    return csms
+
+
+# ---------------------------------------------------------------------------
+# 5. Directiva de base y legislación complementaria
+# ---------------------------------------------------------------------------
+def get_base_directives() -> list[dict]:
+    """Return foundational directives that remain relevant."""
+    return [
+        {
+            "id": "DIR-2012-34",
+            "titulo": "Directiva 2012/34/UE — Espacio Ferroviario Europeo Único (SERA)",
+            "titulo_en": "Directive 2012/34/EU establishing a single European railway area",
+            "tipo": "Directiva",
+            "referencia_celex": "32012L0034",
+            "numero_oficial": "2012/34/EU",
+            "fecha_publicacion": "2012-11-14",
+            "estado": "En vigor (modificada por (EU) 2016/2370)",
+            "descripcion": (
+                "Directiva marco que refunde la legislación de los paquetes ferroviarios 1-3. "
+                "Regula el acceso a la infraestructura, licencias, cánones por uso de vía, "
+                "y la separación entre gestión de infraestructura y operación de servicios."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32012L0034",
+            "url_era": None,
+            "ambito": "Todos los estados miembros (transposición requerida)",
+            "subsistema": "Marco regulatorio general",
+            "categoria": "Legislación base",
+        },
+        {
+            "id": "DIR-2007-59",
+            "titulo": "Directiva 2007/59/CE — Certificación de maquinistas de locomotoras y trenes",
+            "titulo_en": "Directive 2007/59/EC on the certification of train drivers",
+            "tipo": "Directiva",
+            "referencia_celex": "32007L0059",
+            "numero_oficial": "2007/59/EC",
+            "fecha_publicacion": "2007-10-03",
+            "estado": "En vigor",
+            "descripcion": (
+                "Establece las condiciones y procedimientos para la certificación de maquinistas "
+                "que operan locomotoras y trenes en el sistema ferroviario de la UE."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32007L0059",
+            "url_era": "https://www.era.europa.eu/domains/safety-management/train-drivers_en",
+            "ambito": "Todos los estados miembros (transposición requerida)",
+            "subsistema": "Certificación de maquinistas",
+            "categoria": "Tercer Paquete Ferroviario",
+        },
+        {
+            "id": "REG-1371-2007",
+            "titulo": "Reglamento (CE) 1371/2007 — Derechos de los viajeros de ferrocarril",
+            "titulo_en": "Regulation (EC) 1371/2007 on rail passengers' rights and obligations",
+            "tipo": "Reglamento",
+            "referencia_celex": "32007R1371",
+            "numero_oficial": "(EC) 1371/2007",
+            "fecha_publicacion": "2007-10-23",
+            "estado": "Derogado por Reglamento (UE) 2021/782",
+            "descripcion": (
+                "Reglamento original sobre derechos y obligaciones de los viajeros "
+                "de ferrocarril. Sustituido por el Reglamento (UE) 2021/782."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32007R1371",
+            "url_era": None,
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Derechos de viajeros",
+            "categoria": "Tercer Paquete Ferroviario",
+        },
+        {
+            "id": "REG-2021-782",
+            "titulo": "Reglamento (UE) 2021/782 — Derechos de los viajeros de ferrocarril (refundición)",
+            "titulo_en": "Regulation (EU) 2021/782 on rail passengers' rights and obligations (recast)",
+            "tipo": "Reglamento",
+            "referencia_celex": "32021R0782",
+            "numero_oficial": "(EU) 2021/782",
+            "fecha_publicacion": "2021-04-29",
+            "estado": "En vigor desde 2023-06-07",
+            "descripcion": (
+                "Refundición del reglamento de derechos de los viajeros de ferrocarril. "
+                "Incluye indemnizaciones por retrasos, asistencia a PMR, billetes directos, "
+                "e información en tiempo real."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32021R0782",
+            "url_era": None,
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Derechos de viajeros",
+            "categoria": "Legislación complementaria",
+        },
+        {
+            "id": "DIR-2008-68",
+            "titulo": "Directiva 2008/68/CE — Transporte terrestre de mercancías peligrosas",
+            "titulo_en": "Directive 2008/68/EC on the inland transport of dangerous goods",
+            "tipo": "Directiva",
+            "referencia_celex": "32008L0068",
+            "numero_oficial": "2008/68/EC",
+            "fecha_publicacion": "2008-09-24",
+            "estado": "En vigor",
+            "descripcion": (
+                "Regula el transporte de mercancías peligrosas por carretera, ferrocarril "
+                "y vías navegables interiores. Incorpora el RID (Reglamento sobre el "
+                "Transporte Internacional de Mercancías Peligrosas por Ferrocarril)."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32008L0068",
+            "url_era": None,
+            "ambito": "Todos los estados miembros (transposición requerida)",
+            "subsistema": "Mercancías peligrosas",
+            "categoria": "Legislación complementaria",
+        },
+    ]
+
+
+# ---------------------------------------------------------------------------
+# 6. Scraping dinámico de documentos de ERA (opiniones, recomendaciones, etc.)
+# ---------------------------------------------------------------------------
+def scrape_era_documents(session: requests.Session) -> list[dict]:
+    """Scrape the ERA documents & regulations listing page."""
+    url = f"{BASE_URL}/documents"
+    soup = fetch_page(url, session)
+    if not soup:
+        logger.warning("Could not fetch ERA documents page, using fallback data.")
+        return []
+
+    documents = []
+    # The page lists documents as h1 headings followed by metadata
+    headings = soup.find_all("h1")
+
+    for heading in headings:
+        title = clean_text(heading.get_text())
+        if not title or len(title) < 10:
+            continue
+        # Skip navigation headings
+        if title in ("Documents & Regulations",):
+            continue
+
+        doc = {
+            "titulo_en": title,
+            "tipo": "Desconocido",
+            "fuente_scraping": url,
+        }
+
+        # Look for published date in nearby text
+        parent = heading.find_parent()
+        if parent:
+            text = parent.get_text()
+            date_match = re.search(
+                r"Published:\s*(\d{1,2}\s+\w+\s+\d{4})", text
+            )
+            if date_match:
+                doc["fecha_publicacion_texto"] = date_match.group(1)
+
+            # Detect document type from text
+            lower = text.lower()
+            if "opinion" in lower:
+                doc["tipo"] = "Opinión ERA"
+            elif "recommendation" in lower:
+                doc["tipo"] = "Recomendación ERA"
+            elif "report" in lower:
+                doc["tipo"] = "Publicación / Informe ERA"
+            elif "consultation" in lower:
+                doc["tipo"] = "Consulta ERA"
+            elif "publication" in lower:
+                doc["tipo"] = "Publicación ERA"
+
+        # Extract ERA reference from title
+        era_ref_match = re.search(r"(ERA[/-]\w+[/-]\d{4}[/-]?\d*)", title)
+        if era_ref_match:
+            doc["referencia_era"] = era_ref_match.group(1)
+            doc["id"] = f"ERA-DOC-{era_ref_match.group(1).replace('/', '-')}"
+        else:
+            safe_id = re.sub(r"[^a-zA-Z0-9]", "-", title[:60]).strip("-")
+            doc["id"] = f"ERA-DOC-{safe_id}"
+
+        # Look for links
+        link = heading.find("a")
+        if link and link.get("href"):
+            doc["url_era"] = urljoin(BASE_URL, link["href"])
+
+        documents.append(doc)
+
+    logger.info(f"Scraped {len(documents)} documents from ERA documents page.")
+    return documents
+
+
+# ---------------------------------------------------------------------------
+# 7. Scraping de las páginas individuales de TSIs para documentación adicional
+# ---------------------------------------------------------------------------
+def scrape_tsi_page(url: str, session: requests.Session) -> list[dict]:
+    """Scrape a TSI detail page for additional resources and guides."""
+    soup = fetch_page(url, session)
+    if not soup:
+        return []
+
+    resources = []
+    # Find links to PDFs and documents
+    for link in soup.find_all("a", href=True):
+        href = link["href"]
+        text = clean_text(link.get_text())
+        if not text or len(text) < 5:
+            continue
+
+        # Filter for relevant document links
+        is_pdf = href.lower().endswith(".pdf")
+        is_guide = any(
+            kw in text.lower()
+            for kw in ["guide", "application guide", "guía", "technical document"]
+        )
+        is_regulation = any(
+            kw in text.lower()
+            for kw in ["regulation", "directive", "decision", "reglamento"]
+        )
+
+        if is_pdf or is_guide or is_regulation:
+            full_url = urljoin(BASE_URL, href)
+            resource = {
+                "titulo_en": text,
+                "url": full_url,
+                "es_pdf": is_pdf,
+                "fuente_scraping": url,
+            }
+            # Detect language
+            lang_match = re.search(
+                r"(English|français|Deutsch|español|italiano|polski|Nederlands)",
+                text,
+            )
+            if lang_match:
+                resource["idioma"] = lang_match.group(1)
+
+            resources.append(resource)
+
+    return resources
+
+
+TSI_PAGES = [
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/energy-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/infrastructure-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/rolling-stock-locomotives-and-passengers-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/noise-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/rolling-stock-freight-wagons-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/safety-railway-tunnels-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/persons-disabilities-and-reduced-mobility-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/operation-and-traffic-management-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/telematics-applications-passenger-service-tsi_en",
+    "https://www.era.europa.eu/domains/technical-specifications-interoperability/telematics-applications-freight-service-tsi_en",
+]
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+def main() -> None:
+    session = requests.Session()
+    session.headers.update(HEADERS)
+
+    all_documents: list[dict] = []
+    all_resources: list[dict] = []
+
+    # 1) Cuarto Paquete Ferroviario
+    logger.info("=== Recopilando legislación del Cuarto Paquete Ferroviario ===")
+    all_documents.extend(get_fourth_railway_package_legislation())
+
+    # 2) TSIs
+    logger.info("=== Recopilando TSIs ===")
+    all_documents.extend(get_tsi_documents())
+
+    # 3) Reglamentos de implementación
+    logger.info("=== Recopilando Reglamentos de Implementación ===")
+    all_documents.extend(get_implementing_regulations())
+
+    # 4) Métodos Comunes de Seguridad
+    logger.info("=== Recopilando Métodos Comunes de Seguridad (CSM) ===")
+    all_documents.extend(get_csm_documents())
+
+    # 5) Directivas base y legislación complementaria
+    logger.info("=== Recopilando Directivas base y legislación complementaria ===")
+    all_documents.extend(get_base_directives())
+
+    # 6) Scraping dinámico: documentos de ERA (opiniones, recomendaciones)
+    logger.info("=== Scraping de documentos en era.europa.eu/documents ===")
+    scraped_docs = scrape_era_documents(session)
+    all_documents.extend(scraped_docs)
+
+    # 7) Scraping de páginas individuales de TSIs
+    logger.info("=== Scraping de páginas de TSIs para recursos adicionales ===")
+    for tsi_url in TSI_PAGES:
+        resources = scrape_tsi_page(tsi_url, session)
+        if resources:
+            all_resources.extend(resources)
+            logger.info(f"  -> {len(resources)} recursos encontrados en {tsi_url}")
+
+    # Build the final output
+    output = {
+        "metadata": {
+            "titulo": "Documentación regulatoria de ERA para estados miembros de la UE",
+            "descripcion": (
+                "Recopilación exhaustiva de la documentación normativa de la Agencia "
+                "Ferroviaria de la Unión Europea (ERA) que los estados miembros deben "
+                "tener en cuenta: directivas, reglamentos, TSIs, CSMs, opiniones y "
+                "recomendaciones."
+            ),
+            "fuente_principal": "https://www.era.europa.eu",
+            "fecha_generacion": datetime.now(timezone.utc).isoformat(),
+            "total_documentos_regulatorios": len(all_documents),
+            "total_recursos_adicionales": len(all_resources),
+            "categorias": sorted(
+                set(d.get("categoria", "Sin categoría") for d in all_documents)
+            ),
+        },
+        "documentos_regulatorios": all_documents,
+        "recursos_adicionales_tsi": all_resources,
+    }
+
+    output_file = "/workspace/oz_normativa_eu_ffcc/era_regulacion_estados_miembros.json"
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+
+    logger.info(f"Fichero JSON generado: {output_file}")
+    logger.info(
+        f"Total: {len(all_documents)} documentos regulatorios + "
+        f"{len(all_resources)} recursos adicionales de TSIs"
+    )
+
+
+if __name__ == "__main__":
+    main()
