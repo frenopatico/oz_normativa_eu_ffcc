@@ -1,11 +1,11 @@
 {
   "metadata": {
     "titulo": "Documentación regulatoria de ERA para estados miembros de la UE",
-    "descripcion": "Recopilación exhaustiva de la documentación normativa de la Agencia Ferroviaria de la Unión Europea (ERA) que los estados miembros deben tener en cuenta: directivas, reglamentos, TSIs, CSMs, opiniones y recomendaciones.",
+    "descripcion": "Recopilación exhaustiva de la documentación normativa de la Agencia Ferroviaria de la Unión Europea (ERA) que los estados miembros deben tener en cuenta.",
     "fuente_principal": "https://www.era.europa.eu",
-    "fecha_generacion": "2026-03-07T19:37:21.700296+00:00",
+    "fecha_generacion": "2026-06-26T17:01:20.609213+00:00",
     "total_documentos_regulatorios": 37,
-    "total_recursos_adicionales": 88,
+    "total_recursos_adicionales": 90,
     "categorias": [
       "Cuarto Paquete Ferroviario - Pilar Técnico",
       "Cuarto Paquete Ferroviario - Pilar de Mercado",
@@ -965,14 +965,20 @@
       "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
     },
     {
-      "titulo_en": "Commission Implementing Regulation (EU) 2023/1695 of 10 August 2023",
-      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023R1695&qid=1694158367331",
+      "titulo_en": "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending Impl…",
+      "url": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
       "es_pdf": false,
       "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
     },
     {
-      "titulo_en": "Commission Implementing Regulation (EU) 2023/1695 of 10 August 2023",
-      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023R1695&qid=1694158367331",
+      "titulo_en": "INFORMATIVE. Changes to Annex I",
+      "url": "https://www.era.europa.eu/sites/default/files/2026-04/compare%20ccs%20tsi%20amendment.pdf",
+      "es_pdf": true,
+      "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
+    },
+    {
+      "titulo_en": "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending Impl…",
+      "url": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
       "es_pdf": false,
       "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
     },
@@ -1057,6 +1063,12 @@
     {
       "titulo_en": "Commission Decision of 25 January 2012 on the technical specification for inter…",
       "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1586241397584&uri=CELEX%3A32012D0088",
+      "es_pdf": false,
+      "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
+    },
+    {
+      "titulo_en": "Commission Implementing Regulation (EU) 2023/1695 of 10 August 2023",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023R1695&qid=1694158367331",
       "es_pdf": false,
       "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
     },
