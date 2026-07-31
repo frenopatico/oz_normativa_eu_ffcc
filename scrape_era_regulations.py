@@ -358,12 +358,16 @@ def get_tsi_documents() -> list[dict]:
             "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
             "referencia_celex": "32023R1695",
             "numero_oficial": "Commission Implementing Regulation (EU) 2023/1695",
+            "reglamento_base": "Commission Implementing Regulation (EU) 2023/1695",
+            "enmiendas": ["(EU) 2026/693"],
             "fecha_publicacion": "2023-09-08",
-            "estado": "En vigor",
+            "estado": "En vigor (modificado por (EU) 2026/693)",
             "descripcion": (
                 "Subsistemas de control-mando y señalización embarcados y en tierra. "
                 "Incluye especificaciones ERTMS/ETCS, GSM-R, ATO, FRMCS. "
-                "Define el régimen de transición y los planes nacionales de implementación (NIP)."
+                "Define el régimen de transición y los planes nacionales de implementación (NIP). "
+                "Modificada por el Reglamento de Ejecución (UE) 2026/693, que sustituye "
+                "íntegramente los anexos."
             ),
             "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1695",
             "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
@@ -373,7 +377,11 @@ def get_tsi_documents() -> list[dict]:
             "notas": (
                 "El Apéndice A contiene las especificaciones mandatorias ERTMS. "
                 "Los estados miembros deben presentar planes nacionales de implementación (NIP) "
-                "para la migración a FRMCS y ETCS."
+                "para la migración a FRMCS y ETCS. "
+                "Desde el 05/05/2026 aplica la versión modificada por (EU) 2026/693: nuevos "
+                "procedimientos de ensayo para ETCS Baseline 4 y ATO Baseline 1, descripción "
+                "detallada de las versiones de sistema reducidas 2.1 y 2.2, y nuevos regímenes "
+                "transitorios del Apéndice B."
             ),
         },
         {
@@ -536,6 +544,40 @@ def get_implementing_regulations() -> list[dict]:
             "ambito": "Todos los estados miembros",
             "subsistema": "Mantenimiento (ECM)",
             "categoria": "Reglamento de Implementación - Seguridad",
+        },
+        {
+            "id": "IMPL-2026-693",
+            "titulo": "Reglamento de Ejecución (UE) 2026/693 — Modificación de la ETI CCS (2023/1695)",
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending "
+                "Implementing Regulation (EU) 2023/1695 as regards new testing specifications, "
+                "a set of reduced specifications and transitional measures"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32026R0693",
+            "numero_oficial": "(EU) 2026/693",
+            "fecha_publicacion": "2026-04-15",
+            "estado": "En vigor desde 2026-05-05",
+            "descripcion": (
+                "Modifica la ETI de Control-Mando y Señalización (Reglamento de Ejecución "
+                "(UE) 2023/1695). Introduce nuevos procedimientos de ensayo para equipos ETCS "
+                "Baseline 4 y ATO Baseline 1, define en detalle las versiones de sistema "
+                "reducidas 2.1 y 2.2 dentro del conjunto único de especificaciones, revisa los "
+                "regímenes transitorios (puntos 7.2.4 y Apéndice B del Anexo I) y añade "
+                "obligaciones de los administradores de infraestructura sobre compatibilidad "
+                "del sistema de radio. Sustituye íntegramente los anexos de 2023/1695."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Control-Mando y Señalización (CCS)",
+            "categoria": "Reglamento de Implementación - TSI CCS",
+            "notas": (
+                "No requiere re-notificación de los organismos notificados. "
+                "Los vehiculos que necesiten sistemas Clase B pueden optar a fondos de la Unión "
+                "con la opción del punto 7.4.2.4(3) del Anexo I hasta el 31/12/2040. "
+                "ERA publicó un documento informativo con la comparativa de cambios del Anexo I."
+            ),
         },
         {
             "id": "IMPL-2019-773",

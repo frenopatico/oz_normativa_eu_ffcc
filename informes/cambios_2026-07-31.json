@@ -1,0 +1,95 @@
+{
+  "fecha_analisis": "2026-07-31T17:03:56.100867+00:00",
+  "fecha_estado_anterior": "2026-03-07T19:37:21.700296+00:00",
+  "fecha_estado_nuevo": "2026-07-31T17:03:56.100779+00:00",
+  "nuevos": [
+    {
+      "id": "IMPL-2026-693",
+      "titulo": "Reglamento de Ejecución (UE) 2026/693 — Modificación de la ETI CCS (2023/1695)",
+      "titulo_en": "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending Implementing Regulation (EU) 2023/1695 as regards new testing specifications, a set of reduced specifications and transitional measures",
+      "tipo": "Reglamento de Ejecución",
+      "referencia_celex": "32026R0693",
+      "numero_oficial": "(EU) 2026/693",
+      "fecha_publicacion": "2026-04-15",
+      "estado": "En vigor desde 2026-05-05",
+      "descripcion": "Modifica la ETI de Control-Mando y Señalización (Reglamento de Ejecución (UE) 2023/1695). Introduce nuevos procedimientos de ensayo para equipos ETCS Baseline 4 y ATO Baseline 1, define en detalle las versiones de sistema reducidas 2.1 y 2.2 dentro del conjunto único de especificaciones, revisa los regímenes transitorios (puntos 7.2.4 y Apéndice B del Anexo I) y añade obligaciones de los administradores de infraestructura sobre compatibilidad del sistema de radio. Sustituye íntegramente los anexos de 2023/1695.",
+      "url_eur_lex": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
+      "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
+      "ambito": "Todos los estados miembros",
+      "subsistema": "Control-Mando y Señalización (CCS)",
+      "categoria": "Reglamento de Implementación - TSI CCS",
+      "notas": "No requiere re-notificación de los organismos notificados. Los vehiculos que necesiten sistemas Clase B pueden optar a fondos de la Unión con la opción del punto 7.4.2.4(3) del Anexo I hasta el 31/12/2040. ERA publicó un documento informativo con la comparativa de cambios del Anexo I."
+    }
+  ],
+  "eliminados": [],
+  "derogados": [],
+  "sustituidos": [],
+  "cambios_estado": [
+    {
+      "id": "TSI-CCS-2023",
+      "titulo": "ETI de Control-Mando y Señalización (TSI CCS)",
+      "estado_anterior": "En vigor",
+      "estado_nuevo": "En vigor (modificado por (EU) 2026/693)",
+      "todos_los_cambios": [
+        {
+          "campo": "estado",
+          "anterior": "En vigor",
+          "nuevo": "En vigor (modificado por (EU) 2026/693)"
+        },
+        {
+          "campo": "descripcion",
+          "anterior": "Subsistemas de control-mando y señalización embarcados y en tierra. Incluye especificaciones ERTMS/ETCS, GSM-R, ATO, FRMCS. Define el régimen de transición y los planes nacionales de implementación (NIP).",
+          "nuevo": "Subsistemas de control-mando y señalización embarcados y en tierra. Incluye especificaciones ERTMS/ETCS, GSM-R, ATO, FRMCS. Define el régimen de transición y los planes nacionales de implementación (NIP). Modificada por el Reglamento de Ejecución (UE) 2026/693, que sustituye íntegramente los anexos."
+        },
+        {
+          "campo": "enmiendas",
+          "anterior": null,
+          "nuevo": [
+            "(EU) 2026/693"
+          ]
+        },
+        {
+          "campo": "notas",
+          "anterior": "El Apéndice A contiene las especificaciones mandatorias ERTMS. Los estados miembros deben presentar planes nacionales de implementación (NIP) para la migración a FRMCS y ETCS.",
+          "nuevo": "El Apéndice A contiene las especificaciones mandatorias ERTMS. Los estados miembros deben presentar planes nacionales de implementación (NIP) para la migración a FRMCS y ETCS. Desde el 05/05/2026 aplica la versión modificada por (EU) 2026/693: nuevos procedimientos de ensayo para ETCS Baseline 4 y ATO Baseline 1, descripción detallada de las versiones de sistema reducidas 2.1 y 2.2, y nuevos regímenes transitorios del Apéndice B."
+        }
+      ]
+    }
+  ],
+  "modificados": [],
+  "recursos_tsi": {
+    "añadidos": [
+      {
+        "titulo_en": "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending Impl…",
+        "url": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
+        "es_pdf": false,
+        "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
+      },
+      {
+        "titulo_en": "INFORMATIVE. Changes to Annex I",
+        "url": "https://www.era.europa.eu/sites/default/files/2026-04/compare%20ccs%20tsi%20amendment.pdf",
+        "es_pdf": true,
+        "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
+      },
+      {
+        "titulo_en": "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending Impl…",
+        "url": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
+        "es_pdf": false,
+        "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
+      }
+    ],
+    "eliminados": []
+  },
+  "resumen": {
+    "total_docs_anterior": 37,
+    "total_docs_nuevo": 38,
+    "nuevos": 1,
+    "eliminados": 0,
+    "derogados": 0,
+    "sustituidos": 0,
+    "cambios_estado": 1,
+    "modificados": 0,
+    "recursos_tsi_añadidos": 3,
+    "recursos_tsi_eliminados": 0
+  }
+}
