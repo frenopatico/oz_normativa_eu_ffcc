@@ -94,17 +94,32 @@ def diff_document(old_doc: dict, new_doc: dict) -> list[dict]:
 
 
 def diff_resources(old_resources: list[dict], new_resources: list[dict]) -> dict:
-    """Compara recursos adicionales de TSI."""
+    """Compara recursos adicionales de TSI.
+
+    Las páginas de ERA repiten el mismo enlace varias veces en una misma página,
+    así que se deduplica por clave para no reportar el mismo recurso más de una vez.
+    """
     def resource_key(r: dict) -> str:
-        return r.get("url", r.get("titulo_en", ""))
+        return r.get("url") or r.get("titulo_en", "")
 
     old_keys = {resource_key(r) for r in old_resources}
     new_keys = {resource_key(r) for r in new_resources}
 
-    added = [r for r in new_resources if resource_key(r) not in old_keys]
-    removed = [r for r in old_resources if resource_key(r) not in new_keys]
+    def unique_diff(resources: list[dict], exclude: set[str]) -> list[dict]:
+        result: list[dict] = []
+        seen: set[str] = set()
+        for r in resources:
+            key = resource_key(r)
+            if key in exclude or key in seen:
+                continue
+            seen.add(key)
+            result.append(r)
+        return result
 
-    return {"added": added, "removed": removed}
+    return {
+        "added": unique_diff(new_resources, old_keys),
+        "removed": unique_diff(old_resources, new_keys),
+    }
 
 
 def detect_changes(old_data: dict, new_data: dict) -> dict:
