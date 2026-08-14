@@ -358,12 +358,16 @@ def get_tsi_documents() -> list[dict]:
             "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
             "referencia_celex": "32023R1695",
             "numero_oficial": "Commission Implementing Regulation (EU) 2023/1695",
+            "enmiendas": ["(EU) 2026/693"],
             "fecha_publicacion": "2023-09-08",
-            "estado": "En vigor",
+            "estado": "En vigor (modificado por (EU) 2026/693)",
             "descripcion": (
                 "Subsistemas de control-mando y señalización embarcados y en tierra. "
                 "Incluye especificaciones ERTMS/ETCS, GSM-R, ATO, FRMCS. "
-                "Define el régimen de transición y los planes nacionales de implementación (NIP)."
+                "Define el régimen de transición y los planes nacionales de implementación (NIP). "
+                "Modificada por el Reglamento de Ejecución (UE) 2026/693 en lo relativo a nuevas "
+                "especificaciones de ensayo, un conjunto de especificaciones reducidas y "
+                "medidas transitorias."
             ),
             "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1695",
             "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
@@ -373,7 +377,12 @@ def get_tsi_documents() -> list[dict]:
             "notas": (
                 "El Apéndice A contiene las especificaciones mandatorias ERTMS. "
                 "Los estados miembros deben presentar planes nacionales de implementación (NIP) "
-                "para la migración a FRMCS y ETCS."
+                "para la migración a FRMCS y ETCS. "
+                "El Reglamento (UE) 2026/693 (DO L de 15.4.2026) revisa el ámbito de aplicación "
+                "a subsistemas existentes (art. 2), la elegibilidad de fondos de la UE para "
+                "sistemas de Clase B (art. 8) y los plazos de derogación de normas nacionales "
+                "(art. 13); no exige la re-notificación de los organismos de evaluación de la "
+                "conformidad ya notificados."
             ),
         },
         {
@@ -490,6 +499,44 @@ def get_tsi_documents() -> list[dict]:
 def get_implementing_regulations() -> list[dict]:
     """Return key implementing and delegated regulations."""
     regs = [
+        {
+            "id": "IMPL-2026-693",
+            "titulo": (
+                "Reglamento de Ejecución (UE) 2026/693 — Modificación de la ETI CCS "
+                "(nuevas especificaciones de ensayo, especificaciones reducidas y medidas transitorias)"
+            ),
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending "
+                "Implementing Regulation (EU) 2023/1695 as regards new testing specifications, "
+                "a set of reduced specifications and transitional measures"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32026R0693",
+            "numero_oficial": "(EU) 2026/693",
+            "fecha_publicacion": "2026-04-15",
+            "estado": "En vigor",
+            "descripcion": (
+                "Modifica el Reglamento de Ejecución (UE) 2023/1695 (ETI CCS): introduce nuevas "
+                "especificaciones de ensayo, un conjunto de especificaciones reducidas y medidas "
+                "transitorias. Redefine la aplicación de la ETI a subsistemas CCS en tierra y "
+                "embarcados ya en servicio antes del 28/09/2023 (renovación/mejora, extensión del "
+                "área de uso a tres o más estados miembros, mantenimiento de especificaciones), "
+                "ajusta la elegibilidad de fondos de la UE para vehículos con sistemas de Clase B "
+                "(hasta el 31/12/2040 para determinadas opciones) y los plazos de derogación de "
+                "normas nacionales sobre compatibilidad."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Control-Mando y Señalización (CCS)",
+            "categoria": "Reglamento de Implementación - TSI CCS",
+            "notas": (
+                "Publicado en el DO L de 15/04/2026; entra en vigor a los 20 días de su publicación "
+                "(05/05/2026). No requiere re-notificación de los organismos de evaluación de la "
+                "conformidad notificados conforme a versiones anteriores de la ETI CCS "
+                "((UE) 2023/1695 y (UE) 2016/919)."
+            ),
+        },
         {
             "id": "IMPL-2018-545",
             "titulo": "Reglamento de Ejecución (UE) 2018/545 — Procedimiento de autorización de vehículos",
