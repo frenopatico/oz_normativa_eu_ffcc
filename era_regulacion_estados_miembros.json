@@ -1,11 +1,11 @@
 {
   "metadata": {
     "titulo": "Documentación regulatoria de ERA para estados miembros de la UE",
-    "descripcion": "Recopilación exhaustiva de la documentación normativa de la Agencia Ferroviaria de la Unión Europea (ERA) que los estados miembros deben tener en cuenta: directivas, reglamentos, TSIs, CSMs, opiniones y recomendaciones.",
+    "descripcion": "Recopilación exhaustiva de la documentación normativa de la Agencia Ferroviaria de la Unión Europea (ERA) que los estados miembros deben tener en cuenta.",
     "fuente_principal": "https://www.era.europa.eu",
-    "fecha_generacion": "2026-03-07T19:37:21.700296+00:00",
-    "total_documentos_regulatorios": 37,
-    "total_recursos_adicionales": 88,
+    "fecha_generacion": "2026-08-21T17:04:11.486364+00:00",
+    "total_documentos_regulatorios": 38,
+    "total_recursos_adicionales": 90,
     "categorias": [
       "Cuarto Paquete Ferroviario - Pilar Técnico",
       "Cuarto Paquete Ferroviario - Pilar de Mercado",
@@ -15,6 +15,7 @@
       "Reglamento Delegado - CSM",
       "Reglamento de Implementación - 4º Paquete",
       "Reglamento de Implementación - Seguridad",
+      "Reglamento de Implementación - TSI CCS",
       "Reglamento de Implementación - TSI OPE",
       "TSI",
       "TSI - 2026",
@@ -243,15 +244,18 @@
       "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
       "referencia_celex": "32023R1695",
       "numero_oficial": "Commission Implementing Regulation (EU) 2023/1695",
+      "enmiendas": [
+        "(EU) 2026/693"
+      ],
       "fecha_publicacion": "2023-09-08",
-      "estado": "En vigor",
+      "estado": "En vigor (modificado por (EU) 2026/693)",
       "descripcion": "Subsistemas de control-mando y señalización embarcados y en tierra. Incluye especificaciones ERTMS/ETCS, GSM-R, ATO, FRMCS. Define el régimen de transición y los planes nacionales de implementación (NIP).",
       "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1695",
       "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
       "ambito": "Todos los estados miembros",
       "subsistema": "Control-Mando y Señalización (CCS)",
       "categoria": "TSI - Paquete 2023",
-      "notas": "El Apéndice A contiene las especificaciones mandatorias ERTMS. Los estados miembros deben presentar planes nacionales de implementación (NIP) para la migración a FRMCS y ETCS."
+      "notas": "El Apéndice A contiene las especificaciones mandatorias ERTMS. Los estados miembros deben presentar planes nacionales de implementación (NIP) para la migración a FRMCS y ETCS. Modificada por el Reglamento de Ejecución (UE) 2026/693 (DO L de 15/04/2026) en lo relativo a nuevas especificaciones de ensayo, un conjunto de especificaciones reducidas y medidas transitorias."
     },
     {
       "id": "TSI-PRM-2023",
@@ -371,6 +375,23 @@
       "ambito": "Todos los estados miembros",
       "subsistema": "Mantenimiento (ECM)",
       "categoria": "Reglamento de Implementación - Seguridad"
+    },
+    {
+      "id": "IMPL-2026-693",
+      "titulo": "Reglamento de Ejecución (UE) 2026/693 — Modificación de la ETI CCS (especificaciones de ensayo, especificaciones reducidas y medidas transitorias)",
+      "titulo_en": "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending Implementing Regulation (EU) 2023/1695 as regards new testing specifications, a set of reduced specifications and transitional measures",
+      "tipo": "Reglamento de Ejecución",
+      "referencia_celex": "32026R0693",
+      "numero_oficial": "(EU) 2026/693",
+      "fecha_publicacion": "2026-04-15",
+      "estado": "En vigor (desde 2026-05-05)",
+      "descripcion": "Modifica el Reglamento de Ejecución (UE) 2023/1695 (ETI CCS). Introduce nuevas especificaciones de ensayo, un conjunto de especificaciones reducidas y medidas transitorias asociadas a las líneas base ERTMS (ETCS Baseline 4 y ATO Baseline 1). Modifica los artículos 2 y 8 y el Anexo I del Reglamento 2023/1695.",
+      "url_eur_lex": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
+      "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
+      "ambito": "Todos los estados miembros",
+      "subsistema": "Control-Mando y Señalización (CCS)",
+      "categoria": "Reglamento de Implementación - TSI CCS",
+      "notas": "Entrada en vigor a los 20 días de su publicación en el DO L de 15/04/2026. ERA publica un documento informativo de comparación de los cambios al Anexo I."
     },
     {
       "id": "IMPL-2019-773",
@@ -965,14 +986,20 @@
       "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
     },
     {
-      "titulo_en": "Commission Implementing Regulation (EU) 2023/1695 of 10 August 2023",
-      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023R1695&qid=1694158367331",
+      "titulo_en": "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending Impl…",
+      "url": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
       "es_pdf": false,
       "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
     },
     {
-      "titulo_en": "Commission Implementing Regulation (EU) 2023/1695 of 10 August 2023",
-      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023R1695&qid=1694158367331",
+      "titulo_en": "INFORMATIVE. Changes to Annex I",
+      "url": "https://www.era.europa.eu/sites/default/files/2026-04/compare%20ccs%20tsi%20amendment.pdf",
+      "es_pdf": true,
+      "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
+    },
+    {
+      "titulo_en": "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending Impl…",
+      "url": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
       "es_pdf": false,
       "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
     },
@@ -1057,6 +1084,12 @@
     {
       "titulo_en": "Commission Decision of 25 January 2012 on the technical specification for inter…",
       "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1586241397584&uri=CELEX%3A32012D0088",
+      "es_pdf": false,
+      "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
+    },
+    {
+      "titulo_en": "Commission Implementing Regulation (EU) 2023/1695 of 10 August 2023",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023R1695&qid=1694158367331",
       "es_pdf": false,
       "fuente_scraping": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en"
     },
