@@ -358,8 +358,9 @@ def get_tsi_documents() -> list[dict]:
             "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
             "referencia_celex": "32023R1695",
             "numero_oficial": "Commission Implementing Regulation (EU) 2023/1695",
+            "enmiendas": ["(EU) 2026/693"],
             "fecha_publicacion": "2023-09-08",
-            "estado": "En vigor",
+            "estado": "En vigor (modificado por (EU) 2026/693)",
             "descripcion": (
                 "Subsistemas de control-mando y señalización embarcados y en tierra. "
                 "Incluye especificaciones ERTMS/ETCS, GSM-R, ATO, FRMCS. "
@@ -373,7 +374,10 @@ def get_tsi_documents() -> list[dict]:
             "notas": (
                 "El Apéndice A contiene las especificaciones mandatorias ERTMS. "
                 "Los estados miembros deben presentar planes nacionales de implementación (NIP) "
-                "para la migración a FRMCS y ETCS."
+                "para la migración a FRMCS y ETCS. "
+                "Modificada por el Reglamento de Ejecución (UE) 2026/693 (DO L de 15/04/2026) "
+                "en lo relativo a nuevas especificaciones de ensayo, un conjunto de "
+                "especificaciones reducidas y medidas transitorias."
             ),
         },
         {
@@ -536,6 +540,38 @@ def get_implementing_regulations() -> list[dict]:
             "ambito": "Todos los estados miembros",
             "subsistema": "Mantenimiento (ECM)",
             "categoria": "Reglamento de Implementación - Seguridad",
+        },
+        {
+            "id": "IMPL-2026-693",
+            "titulo": (
+                "Reglamento de Ejecución (UE) 2026/693 — Modificación de la ETI CCS "
+                "(especificaciones de ensayo, especificaciones reducidas y medidas transitorias)"
+            ),
+            "titulo_en": (
+                "Commission Implementing Regulation (EU) 2026/693 of 19 March 2026 amending "
+                "Implementing Regulation (EU) 2023/1695 as regards new testing specifications, "
+                "a set of reduced specifications and transitional measures"
+            ),
+            "tipo": "Reglamento de Ejecución",
+            "referencia_celex": "32026R0693",
+            "numero_oficial": "(EU) 2026/693",
+            "fecha_publicacion": "2026-04-15",
+            "estado": "En vigor (desde 2026-05-05)",
+            "descripcion": (
+                "Modifica el Reglamento de Ejecución (UE) 2023/1695 (ETI CCS). Introduce nuevas "
+                "especificaciones de ensayo, un conjunto de especificaciones reducidas y medidas "
+                "transitorias asociadas a las líneas base ERTMS (ETCS Baseline 4 y ATO Baseline 1). "
+                "Modifica los artículos 2 y 8 y el Anexo I del Reglamento 2023/1695."
+            ),
+            "url_eur_lex": "https://eur-lex.europa.eu/eli/reg_impl/2026/693/oj/eng",
+            "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
+            "ambito": "Todos los estados miembros",
+            "subsistema": "Control-Mando y Señalización (CCS)",
+            "categoria": "Reglamento de Implementación - TSI CCS",
+            "notas": (
+                "Entrada en vigor a los 20 días de su publicación en el DO L de 15/04/2026. "
+                "ERA publica un documento informativo de comparación de los cambios al Anexo I."
+            ),
         },
         {
             "id": "IMPL-2019-773",
