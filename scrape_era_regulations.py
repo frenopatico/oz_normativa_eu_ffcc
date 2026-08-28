@@ -358,12 +358,16 @@ def get_tsi_documents() -> list[dict]:
             "tipo": "Especificación Técnica de Interoperabilidad (TSI)",
             "referencia_celex": "32023R1695",
             "numero_oficial": "Commission Implementing Regulation (EU) 2023/1695",
+            "enmiendas": ["(EU) 2026/693"],
             "fecha_publicacion": "2023-09-08",
             "estado": "En vigor",
             "descripcion": (
                 "Subsistemas de control-mando y señalización embarcados y en tierra. "
                 "Incluye especificaciones ERTMS/ETCS, GSM-R, ATO, FRMCS. "
-                "Define el régimen de transición y los planes nacionales de implementación (NIP)."
+                "Define el régimen de transición y los planes nacionales de implementación (NIP). "
+                "Modificada por el Reglamento de Ejecución (UE) 2026/693, de 19 de marzo de 2026, "
+                "en lo relativo a nuevas especificaciones de ensayo, un conjunto de especificaciones "
+                "reducidas y medidas transitorias."
             ),
             "url_eur_lex": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1695",
             "url_era": "https://www.era.europa.eu/domains/technical-specifications-interoperability/control-command-and-signalling-tsi_en",
@@ -373,7 +377,9 @@ def get_tsi_documents() -> list[dict]:
             "notas": (
                 "El Apéndice A contiene las especificaciones mandatorias ERTMS. "
                 "Los estados miembros deben presentar planes nacionales de implementación (NIP) "
-                "para la migración a FRMCS y ETCS."
+                "para la migración a FRMCS y ETCS. "
+                "ERA publica un texto comparativo informativo del Anexo I entre 2026/693 y 2023/1695: "
+                "https://www.era.europa.eu/sites/default/files/2026-04/compare%20ccs%20tsi%20amendment.pdf"
             ),
         },
         {
